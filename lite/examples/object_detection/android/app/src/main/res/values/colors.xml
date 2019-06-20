@@ -3,6 +3,9 @@
     <color name="colorPrimary">#98999b</color>
     <color name="colorPrimaryDark">#404041</color>
     <color name="colorAccent">#d2d0d1</color>
+    <color name="primary_text">#000000</color>
+    <color name="iconBackground">#fff</color>
+
 
     <color name="semi_transparent">#66000000</color>
 </resources>

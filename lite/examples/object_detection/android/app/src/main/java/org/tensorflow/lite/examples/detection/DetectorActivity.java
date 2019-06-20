@@ -29,6 +29,7 @@ import android.media.ImageReader.OnImageAvailableListener;
 import android.os.SystemClock;
 import android.util.Size;
 import android.util.TypedValue;
+import android.view.View;
 import android.widget.Toast;
 import java.io.IOException;
 import java.util.LinkedList;
@@ -241,6 +242,10 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
   // checkpoints.
   private enum DetectorMode {
     TF_OD_API;
+  }
+
+  public void EndTrip(View view) {
+    finish();
   }
 
   @Override

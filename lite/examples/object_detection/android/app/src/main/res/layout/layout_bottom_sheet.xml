@@ -149,6 +149,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_baseline_add" />
+
         </LinearLayout>
     </RelativeLayout>
 
@@ -157,6 +158,14 @@
         android:layout_height="1px"
         android:layout_marginTop="10dp"
         android:background="@android:color/darker_gray" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/btnEndTrip"
+        android:text="End Trip"
+        android:onClick="EndTrip"
+        />
 
     <!-- TODO(b/112541284): Unhide when new NNAPI delegate is used. -->
     <LinearLayout

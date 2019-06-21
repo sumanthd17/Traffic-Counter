@@ -28,6 +28,8 @@ import android.util.SparseIntArray;
 import android.view.Surface;
 import android.widget.Toast;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class IntroPage extends AppCompatActivity{
     private static final String TAG = "introPage";
@@ -132,7 +134,7 @@ public class IntroPage extends AppCompatActivity{
         try {
             mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
             mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4); //THREE_GPP
-            mMediaRecorder.setOutputFile(Environment.getExternalStorageDirectory() + "/video.mp4");
+            mMediaRecorder.setOutputFile(Environment.getExternalStorageDirectory() + new StringBuilder("/tc_video_").append(new SimpleDateFormat("dd-MM-yyyy-hh_mm_ss").format(new Date())).append(".mp4").toString());
             mMediaRecorder.setVideoSize(DISPLAY_WIDTH, DISPLAY_HEIGHT);
             mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
             mMediaRecorder.setVideoEncodingBitRate(512 * 1000);

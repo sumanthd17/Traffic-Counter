@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void StartDetector(View view) {
-        Intent intent = new Intent(MainActivity.this, DetectorActivity.class);
+        Intent intent = new Intent(MainActivity.this, IntroPage.class);
         startActivity(intent);
     }
 

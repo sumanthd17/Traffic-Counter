@@ -17,29 +17,44 @@
 package org.tensorflow.lite.examples.detection;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.params.StreamConfigurationMap;
+import android.hardware.display.DisplayManager;
+import android.hardware.display.VirtualDisplay;
 import android.media.Image;
 import android.media.Image.Plane;
 import android.media.ImageReader;
 import android.media.ImageReader.OnImageAvailableListener;
+import android.media.MediaRecorder;
+import android.media.projection.MediaProjection;
+import android.media.projection.MediaProjectionManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Trace;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.BottomSheetBehavior;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SwitchCompat;
 import android.support.v7.widget.Toolbar;
+import android.util.DisplayMetrics;
+import android.util.Log;
 import android.util.Size;
+import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -49,7 +64,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.tensorflow.lite.examples.detection.env.ImageUtils;
 import org.tensorflow.lite.examples.detection.env.Logger;
 
@@ -86,6 +106,27 @@ public abstract class CameraActivity extends AppCompatActivity
   private SwitchCompat apiSwitchCompat;
   private TextView threadsTextView;
 
+  //screen recording essentials
+  private static final int REQUEST_CODE = 1000;
+  private int mScreenDensity;
+  private MediaProjectionManager mProjectionManager;
+  private static final int DISPLAY_WIDTH = 720;
+  private static final int DISPLAY_HEIGHT = 1280;
+  private MediaProjection mMediaProjection;
+  private VirtualDisplay mVirtualDisplay;
+  private MediaRecorder mMediaRecorder;
+  private MediaProjectionCallback mMediaProjectionCallback;
+  private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
+  private static final int REQUEST_PERMISSION_KEY = 1;
+  boolean isRecording = false;
+
+  static {
+    ORIENTATIONS.append(Surface.ROTATION_0, 90);
+    ORIENTATIONS.append(Surface.ROTATION_90, 0);
+    ORIENTATIONS.append(Surface.ROTATION_180, 270);
+    ORIENTATIONS.append(Surface.ROTATION_270, 180);
+  }
+
   @Override
   protected void onCreate(final Bundle savedInstanceState) {
     LOGGER.d("onCreate " + this);
@@ -102,6 +143,19 @@ public abstract class CameraActivity extends AppCompatActivity
     } else {
       requestPermission();
     }
+
+    //screen recording
+    DisplayMetrics metrics = new DisplayMetrics();
+    getWindowManager().getDefaultDisplay().getMetrics(metrics);
+    mScreenDensity = metrics.densityDpi;
+
+    mMediaRecorder = new MediaRecorder();
+
+    mProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+
+    initRecorder();
+    shareScreen();
+
 
     threadsTextView = findViewById(R.id.threads);
     plusImageView = findViewById(R.id.plus);
@@ -172,6 +226,164 @@ public abstract class CameraActivity extends AppCompatActivity
   protected int[] getRgbBytes() {
     imageConverter.run();
     return rgbBytes;
+  }
+
+  public void stopRec(){
+    mMediaRecorder.stop();
+    mMediaRecorder.reset();
+    stopScreenSharing();
+  }
+
+  private void shareScreen() {
+    if (mMediaProjection == null) {
+      startActivityForResult(mProjectionManager.createScreenCaptureIntent(), REQUEST_CODE);
+      return;
+    }
+    mVirtualDisplay = createVirtualDisplay();
+    mMediaRecorder.start();
+    isRecording = true;
+  }
+
+  private VirtualDisplay createVirtualDisplay() {
+    return mMediaProjection.createVirtualDisplay("MainActivity", DISPLAY_WIDTH, DISPLAY_HEIGHT, mScreenDensity,
+            DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mMediaRecorder.getSurface(), null, null);
+  }
+
+  private void initRecorder() {
+    try {
+      mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
+      mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4); //THREE_GPP
+      mMediaRecorder.setOutputFile(Environment.getExternalStorageDirectory()
+              + new StringBuilder("/RoadBounce/tc_video_").append(new SimpleDateFormat("dd-MM-yyyy-hh_mm_ss")
+              .format(new Date())).append(".mp4").toString());
+      mMediaRecorder.setVideoSize(DISPLAY_WIDTH, DISPLAY_HEIGHT);
+      mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
+      mMediaRecorder.setVideoEncodingBitRate(512 * 1000);
+      mMediaRecorder.setVideoFrameRate(16); // 30
+      mMediaRecorder.setVideoEncodingBitRate(3000000);
+      int rotation = getWindowManager().getDefaultDisplay().getRotation();
+      int orientation = ORIENTATIONS.get(rotation + 90);
+      mMediaRecorder.setOrientationHint(orientation);
+      mMediaRecorder.prepare();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void stopScreenSharing() {
+    if (mVirtualDisplay == null) {
+      return;
+    }
+    mVirtualDisplay.release();
+    destroyMediaProjection();
+    isRecording = false;
+  }
+
+  private void destroyMediaProjection() {
+    if (mMediaProjection != null) {
+      mMediaProjection.unregisterCallback(mMediaProjectionCallback);
+      mMediaProjection.stop();
+      mMediaProjection = null;
+    }
+    Log.i("CameraActivity", "MediaProjection Stopped");
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.O)
+  @Override
+  public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    if (requestCode != REQUEST_CODE) {
+      Log.e("CameraActivity", "Unknown request code: " + requestCode);
+      return;
+    }
+    if (resultCode != RESULT_OK) {
+      Toast.makeText(this, "Screen Cast Permission Denied", Toast.LENGTH_SHORT).show();
+      isRecording = false;
+      return;
+    }
+    mMediaProjectionCallback = new MediaProjectionCallback();
+    mMediaProjection = mProjectionManager.getMediaProjection(resultCode, data);
+    mMediaProjection.registerCallback(mMediaProjectionCallback, null);
+    mVirtualDisplay = createVirtualDisplay();
+    mMediaRecorder.start();
+    isRecording = true;
+  }
+
+//  @Override
+//  public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+//    switch (requestCode) {
+//      case REQUEST_PERMISSION_KEY:
+//      {
+//        if ((grantResults.length > 0) && (grantResults[0] + grantResults[1]) == PackageManager.PERMISSION_GRANTED) {
+//          initRecorder();
+//          shareScreen();
+//        } else {
+//          isRecording = false;
+//          Snackbar.make(findViewById(android.R.id.content), "Please enable Microphone and Storage permissions.",
+//                  Snackbar.LENGTH_INDEFINITE).setAction("ENABLE",
+//                  new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                      Intent intent = new Intent();
+//                      intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+//                      intent.addCategory(Intent.CATEGORY_DEFAULT);
+//                      intent.setData(Uri.parse("package:" + getPackageName()));
+//                      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                      intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+//                      intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+//                      startActivity(intent);
+//                    }
+//                  }).show();
+//        }
+//        return;
+//      }
+//    }
+//  }
+
+
+
+
+
+  @RequiresApi(api = Build.VERSION_CODES.O)
+  private class MediaProjectionCallback extends MediaProjection.Callback {
+    @Override
+    public void onStop() {
+      if (isRecording) {
+        isRecording = false;
+        mMediaRecorder.stop();
+        mMediaRecorder.reset();
+      }
+      mMediaProjection = null;
+      stopScreenSharing();
+    }
+  }
+
+  @Override
+  public void onBackPressed() {
+    if (isRecording) {
+      Snackbar.make(findViewById(android.R.id.content), "Wanna Stop recording and exit?",
+              Snackbar.LENGTH_INDEFINITE).setAction("Stop",
+              new View.OnClickListener() {
+                @TargetApi(Build.VERSION_CODES.O)
+                @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+                @Override
+                public void onClick(View v) {
+                  mMediaRecorder.stop();
+                  mMediaRecorder.reset();
+                  Log.v("CameraActivity", "Stopping Recording");
+                  stopScreenSharing();
+                  finish();
+                }
+              }).show();
+    } else {
+      finish();
+    }
+  }
+
+  //end screen recording
+
+  public void EndTrip(View view) {
+    stopRec();
+    finish();
   }
 
   protected int getLuminanceStride() {
@@ -333,6 +545,7 @@ public abstract class CameraActivity extends AppCompatActivity
   public synchronized void onDestroy() {
     LOGGER.d("onDestroy " + this);
     super.onDestroy();
+    destroyMediaProjection();
   }
 
   protected synchronized void runInBackground(final Runnable r) {
@@ -349,7 +562,29 @@ public abstract class CameraActivity extends AppCompatActivity
           && grantResults[0] == PackageManager.PERMISSION_GRANTED
           && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
         setFragment();
-      } else {
+      } else if(requestCode == REQUEST_PERMISSION_KEY){
+        if ((grantResults.length > 0) && (grantResults[0] + grantResults[1]) == PackageManager.PERMISSION_GRANTED) {
+          initRecorder();
+          shareScreen();
+        } else {
+          isRecording = false;
+          Snackbar.make(findViewById(android.R.id.content), "Please enable Microphone and Storage permissions.",
+                  Snackbar.LENGTH_INDEFINITE).setAction("ENABLE",
+                  new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                      Intent intent = new Intent();
+                      intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                      intent.addCategory(Intent.CATEGORY_DEFAULT);
+                      intent.setData(Uri.parse("package:" + getPackageName()));
+                      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                      intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+                      intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                      startActivity(intent);
+                    }
+                  }).show();
+        }
+      }else {
         requestPermission();
       }
     }

@@ -1,9 +1,11 @@
 package org.tensorflow.lite.examples.detection;
 
+import android.Manifest;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.view.View;
 import android.support.v4.view.GravityCompat;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -17,6 +19,7 @@ import android.view.Menu;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+    private static final int REQUEST_PERMISSION_KEY = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,8 +47,16 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void StartDetector(View view) {
-        Intent intent = new Intent(MainActivity.this, IntroPage.class);
-        startActivity(intent);
+        String[] PERMISSIONS = {
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE
+        };
+        if (!Function.hasPermissions(this, PERMISSIONS)) {
+            ActivityCompat.requestPermissions(this, PERMISSIONS, REQUEST_PERMISSION_KEY);
+        } else {
+            Intent intent = new Intent(MainActivity.this, DetectorActivity.class);
+            startActivity(intent);
+        }
     }
 
     @Override

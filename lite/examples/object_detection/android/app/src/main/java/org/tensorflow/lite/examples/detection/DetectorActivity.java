@@ -25,10 +25,16 @@ import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.hardware.display.VirtualDisplay;
 import android.media.ImageReader.OnImageAvailableListener;
+import android.media.MediaRecorder;
+import android.media.projection.MediaProjection;
+import android.media.projection.MediaProjectionManager;
 import android.os.SystemClock;
 import android.util.Size;
+import android.util.SparseIntArray;
 import android.util.TypedValue;
+import android.view.Surface;
 import android.view.View;
 import android.widget.Toast;
 import java.io.IOException;
@@ -49,6 +55,8 @@ import org.tensorflow.lite.examples.detection.tracking.MultiBoxTracker;
  */
 public class DetectorActivity extends CameraActivity implements OnImageAvailableListener {
   private static final Logger LOGGER = new Logger();
+
+  private static final String TAG = "DetectorActivity";
 
   // Configuration values for the prepackaged SSD model.
   private static final int TF_OD_API_INPUT_SIZE = 300;
@@ -82,6 +90,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
   private MultiBoxTracker tracker;
 
   private BorderedText borderedText;
+
 
   @Override
   public void onPreviewSizeChosen(final Size size, final int rotation) {
@@ -244,9 +253,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     TF_OD_API;
   }
 
-  public void EndTrip(View view) {
-    finish();
-  }
+
 
   @Override
   protected void setUseNNAPI(final boolean isChecked) {

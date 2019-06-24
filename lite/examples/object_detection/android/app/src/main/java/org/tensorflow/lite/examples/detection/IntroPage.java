@@ -35,7 +35,8 @@ public class IntroPage extends AppCompatActivity{
     private static final String TAG = "introPage";
     private static final int REQUEST_CODE = 1000;
     private int mScreenDensity;
-    Button btn_action;
+    Button btn_action1;
+    Button btn_action2;
     private MediaProjectionManager mProjectionManager;
     private static final int DISPLAY_WIDTH = 720;
     private static final int DISPLAY_HEIGHT = 1280;
@@ -78,8 +79,10 @@ public class IntroPage extends AppCompatActivity{
         mProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
 
 
-        btn_action = (Button) findViewById(R.id.btn_action1);
-        btn_action.setOnClickListener(new View.OnClickListener() {
+        btn_action1 = findViewById(R.id.btn_action1);
+        btn_action2 = findViewById(R.id.btn_action2);
+
+        btn_action1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
@@ -88,14 +91,10 @@ public class IntroPage extends AppCompatActivity{
             }
         });
 
-        btn_action = (Button) findViewById(R.id.btn_action2);
-        btn_action.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                stopRec();
-            }
-        });
+
+        btn_action2.setOnClickListener(v -> stopRec());
     }
+
     public void openCamera(View view){
         Intent intent = new Intent(IntroPage.this, DetectorActivity.class);
         startActivity(intent);
@@ -134,7 +133,9 @@ public class IntroPage extends AppCompatActivity{
         try {
             mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
             mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4); //THREE_GPP
-            mMediaRecorder.setOutputFile(Environment.getExternalStorageDirectory() + new StringBuilder("/tc_video_").append(new SimpleDateFormat("dd-MM-yyyy-hh_mm_ss").format(new Date())).append(".mp4").toString());
+            mMediaRecorder.setOutputFile(Environment.getExternalStorageDirectory()
+                    + new StringBuilder("/RoadBounce/tc_video_").append(new SimpleDateFormat("dd-MM-yyyy-hh_mm_ss")
+                    .format(new Date())).append(".mp4").toString());
             mMediaRecorder.setVideoSize(DISPLAY_WIDTH, DISPLAY_HEIGHT);
             mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
             mMediaRecorder.setVideoEncodingBitRate(512 * 1000);
@@ -279,7 +280,7 @@ public class IntroPage extends AppCompatActivity{
 
 class Function {
 
-    public static  boolean hasPermissions(Context context, String... permissions) {
+    public static boolean hasPermissions(Context context, String... permissions) {
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && context != null && permissions != null) {
             for (String permission : permissions) {
                 if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {

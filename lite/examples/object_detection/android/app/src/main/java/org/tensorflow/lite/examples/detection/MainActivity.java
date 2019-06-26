@@ -16,17 +16,27 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     private static final int REQUEST_PERMISSION_KEY = 1;
-
+    private FirebaseAuth firebaseAuth;
+    private FirebaseAuth mAuth;
+    //view objects
+    private TextView textViewUserEmail;
+    private TextView email;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
 //        FloatingActionButton fab = findViewById(R.id.fab);
 //        fab.setOnClickListener(new View.OnClickListener() {
 //            @Override
@@ -37,13 +47,30 @@ public class MainActivity extends AppCompatActivity
 //                startActivity(intent);
 //            }
 //        });
+
+        firebaseAuth = FirebaseAuth.getInstance();
+        mAuth = FirebaseAuth.getInstance();
+        if(firebaseAuth.getCurrentUser() == null){
+            //closing this activity
+            finish();
+            //starting login activity
+            startActivity(new Intent(this, LoginActivity.class));
+        }
+        FirebaseUser user = firebaseAuth.getCurrentUser();
+
+        //initializing views
+
+
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
+
         NavigationView navigationView = findViewById(R.id.nav_view);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
         navigationView.setNavigationItemSelectedListener(this);
+        textViewUserEmail = (TextView) navigationView.getHeaderView(0).findViewById(R.id.textView);
+        textViewUserEmail.setText(user.getEmail());
     }
 
     public void StartDetector(View view) {
@@ -99,15 +126,16 @@ public class MainActivity extends AppCompatActivity
 
         if (id == R.id.nav_home) {
             // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+        } else if (id == R.id.history) {
 
-        } else if (id == R.id.nav_slideshow) {
+        } else if (id == R.id.guide) {
 
-        } else if (id == R.id.nav_tools) {
-
+        } else if (id == R.id.logout) {
+            mAuth.signOut();
+            finish();
+            Intent I = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(I);
         } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
 
         }
 

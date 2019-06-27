@@ -120,7 +120,6 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
           Toast.makeText(
               getApplicationContext(), "Classifier could not be initialized", Toast.LENGTH_SHORT);
       toast.show();
-      finish();
     }
 
     previewWidth = size.getWidth();
@@ -155,6 +154,11 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         });
 
     tracker.setFrameConfiguration(previewWidth, previewHeight, sensorOrientation);
+  }
+
+  public void EndTrip(View view) {
+
+    finish();
   }
 
   @Override

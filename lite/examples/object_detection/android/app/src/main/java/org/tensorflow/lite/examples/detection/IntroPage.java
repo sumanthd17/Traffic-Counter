@@ -145,6 +145,7 @@ public class IntroPage extends AppCompatActivity{
             int orientation = ORIENTATIONS.get(rotation + 90);
             mMediaRecorder.setOrientationHint(orientation);
             mMediaRecorder.prepare();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -227,10 +228,6 @@ public class IntroPage extends AppCompatActivity{
             }
         }
     }
-
-
-
-
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private class MediaProjectionCallback extends MediaProjection.Callback {

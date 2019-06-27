@@ -29,7 +29,9 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -206,12 +208,18 @@ public class TFLiteObjectDetectionAPIModel implements Classifier {
       // SSD Mobilenet V1 Model assumes class 0 is background class
       // in label file and class labels start from 1 to number_of_classes+1,
       // while outputClasses correspond to class index from 0 to number_of_classes
+
+      SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy-hh-mm-ss");
+      String format = simpleDateFormat.format(new Date());
+
+
       int labelOffset = 1;
       recognitions.add(
           new Recognition(
               "" + i,
               labels.get((int) outputClasses[0][i] + labelOffset),
               outputScores[0][i],
+              format,
               detection));
     }
     Trace.endSection(); // "recognizeImage"

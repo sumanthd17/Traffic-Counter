@@ -30,6 +30,7 @@ import android.media.ImageReader.OnImageAvailableListener;
 import android.media.MediaRecorder;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
+import android.os.Environment;
 import android.os.SystemClock;
 import android.util.Size;
 import android.util.SparseIntArray;
@@ -37,7 +38,12 @@ import android.util.TypedValue;
 import android.view.Surface;
 import android.view.View;
 import android.widget.Toast;
+
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import org.tensorflow.lite.examples.detection.customview.OverlayView;
@@ -156,10 +162,42 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     tracker.setFrameConfiguration(previewWidth, previewHeight, sensorOrientation);
   }
 
-  public void EndTrip(View view) {
+  List<Classifier.Recognition> results;
 
+  public void EndTrip(View view) {
+    try {
+      SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy-hh-mm-ss");
+      String format = simpleDateFormat.format(new Date());
+
+      String filename = "Log-" + format + ".txt";
+      File filePath = new File(Environment.getExternalStorageDirectory() + "/RoadBounce/LOGS");
+
+      if (!filePath.isDirectory()) {
+        filePath.mkdirs();
+      }
+      File txtFile = new File(filePath, filename);
+      FileWriter writer = new FileWriter(txtFile);
+      for (final Classifier.Recognition result : results) {
+        final RectF location = result.getLocation();
+        float minimumConfidence = MINIMUM_CONFIDENCE_TF_OD_API;
+        switch (MODE) {
+          case TF_OD_API:
+            minimumConfidence = MINIMUM_CONFIDENCE_TF_OD_API;
+            break;
+        }
+        if (location != null && result.getConfidence() >= minimumConfidence && (result.getTitle().equals("car") || result.getTitle().equals("motorcycle") || result.getTitle().equals("bus") || result.getTitle().equals("truck"))) {
+          writer.append(String.valueOf(result));
+        }
+      }
+      writer.flush();
+      writer.close();
+    }catch (Exception e){
+      e.printStackTrace();
+    }
     finish();
   }
+
+
 
   @Override
   protected void processImage() {
@@ -192,7 +230,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
           public void run() {
             LOGGER.i("Running detection on image " + currTimestamp);
             final long startTime = SystemClock.uptimeMillis();
-            final List<Classifier.Recognition> results = detector.recognizeImage(croppedBitmap);
+            results = detector.recognizeImage(croppedBitmap);
             lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
 
             cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
@@ -209,8 +247,8 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                 break;
             }
 
-            final List<Classifier.Recognition> mappedRecognitions =
-                new LinkedList<Classifier.Recognition>();
+            List<Classifier.Recognition> mappedRecognitions = new LinkedList<Classifier.Recognition>();
+
 
             for (final Classifier.Recognition result : results) {
               final RectF location = result.getLocation();

@@ -49,6 +49,8 @@ public interface Classifier {
      */
     private final Float confidence;
 
+    private String timeStamp;
+
     /** Optional location within the source image for the location of the recognized object. */
     private RectF location;
 
@@ -58,6 +60,18 @@ public interface Classifier {
       this.title = title;
       this.confidence = confidence;
       this.location = location;
+    }
+
+    public Recognition(String id, String title, Float confidence, String timeStamp, RectF location) {
+      this.id = id;
+      this.title = title;
+      this.confidence = confidence;
+      this.timeStamp = timeStamp;
+      this.location = location;
+    }
+
+    public String getTimeStamp() {
+      return timeStamp;
     }
 
     public String getId() {

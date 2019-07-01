@@ -32,6 +32,7 @@ import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Environment;
 import android.os.SystemClock;
+import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.util.TypedValue;
@@ -165,6 +166,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
   List<Classifier.Recognition> results;
 
   public void EndTrip(View view) {
+    Log.d(TAG, "EndTrip: ");
     try {
       SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy-hh-mm-ss");
       String format = simpleDateFormat.format(new Date());

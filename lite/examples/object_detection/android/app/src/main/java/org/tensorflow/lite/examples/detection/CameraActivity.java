@@ -34,6 +34,7 @@ import android.media.Image.Plane;
 import android.media.ImageReader;
 import android.media.ImageReader.OnImageAvailableListener;
 import android.media.MediaRecorder;
+import android.media.MediaScannerConnection;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
@@ -65,6 +66,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
@@ -250,13 +252,18 @@ public abstract class CameraActivity extends AppCompatActivity
             DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mMediaRecorder.getSurface(), null, null);
   }
 
+  String fileName;
+
   private void initRecorder() {
     try {
       mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
       mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4); //THREE_GPP
+
+      fileName = new StringBuilder("tc_video_").append(new SimpleDateFormat("dd-MM-yyyy-hh_mm_ss")
+              .format(new Date())).append(".mp4").toString();
+
       mMediaRecorder.setOutputFile(Environment.getExternalStorageDirectory()
-              + new StringBuilder("/RoadBounce/tc_video_").append(new SimpleDateFormat("dd-MM-yyyy-hh_mm_ss")
-              .format(new Date())).append(".mp4").toString());
+              + new StringBuilder("/RoadBounce/").append(fileName).toString());
       mMediaRecorder.setVideoSize(DISPLAY_WIDTH, DISPLAY_HEIGHT);
       mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
       mMediaRecorder.setVideoEncodingBitRate(512 * 1000);
@@ -297,6 +304,17 @@ public abstract class CameraActivity extends AppCompatActivity
       mMediaProjection.stop();
       mMediaProjection = null;
     }
+    File path = new File(Environment.getExternalStorageDirectory() + "/RoadBounce/");
+    if (!path.isDirectory()) {
+      path.mkdirs();
+    }
+    File file = new File(path, fileName);
+
+    Intent mediaScannerIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+    Uri fileContentUri = Uri.fromFile(file); // With 'file' being the File object
+    mediaScannerIntent.setData(fileContentUri);
+    this.sendBroadcast(mediaScannerIntent); // With 'this' being the context, e.g. the activity
+
     Log.i("CameraActivity", "MediaProjection Stopped");
   }
 
@@ -356,11 +374,11 @@ public abstract class CameraActivity extends AppCompatActivity
     }
   }
 
-  public void EndTrip(View view) {
-    Log.d(TAG, "EndTrip: ");
-    stopRec();
-    finish();
-  }
+//  public void EndTrip(View view) {
+//    Log.d(TAG, "EndTrip: ");
+//    stopRec();
+//    finish();
+//  }
 
   //end screen recording
 

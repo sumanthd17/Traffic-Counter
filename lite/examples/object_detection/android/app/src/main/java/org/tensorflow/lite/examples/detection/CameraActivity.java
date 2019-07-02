@@ -216,6 +216,8 @@ public abstract class CameraActivity extends AppCompatActivity
               public void onSlide(@NonNull View bottomSheet, float slideOffset) {}
             });
 
+
+
     frameValueTextView = findViewById(R.id.frame_info);
     cropValueTextView = findViewById(R.id.crop_info);
     inferenceTimeTextView = findViewById(R.id.inference_info);
@@ -354,24 +356,31 @@ public abstract class CameraActivity extends AppCompatActivity
 
   @Override
   public void onBackPressed() {
-    if (isRecording) {
-      Snackbar.make(findViewById(android.R.id.content), "Wanna Stop recording and exit?",
-              Snackbar.LENGTH_INDEFINITE).setAction("Stop",
-              new View.OnClickListener() {
-                @TargetApi(Build.VERSION_CODES.O)
-                @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-                @Override
-                public void onClick(View v) {
-                  mMediaRecorder.stop();
-                  mMediaRecorder.reset();
-                  Log.v("CameraActivity", "Stopping Recording");
-                  stopScreenSharing();
-                  finish();
-                }
-              }).show();
-    } else {
-      finish();
+
+    Toast.makeText(this, "Please End Trip To Exit..", Toast.LENGTH_SHORT).show();
+
+    if (sheetBehavior.getState()== BottomSheetBehavior.STATE_COLLAPSED){
+      sheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
     }
+
+//    if (isRecording) {
+//      Snackbar.make(findViewById(android.R.id.content), "Wanna Stop recording and exit?",
+//              Snackbar.LENGTH_INDEFINITE).setAction("Stop",
+//              new View.OnClickListener() {
+//                @TargetApi(Build.VERSION_CODES.O)
+//                @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+//                @Override
+//                public void onClick(View v) {
+//                  mMediaRecorder.stop();
+//                  mMediaRecorder.reset();
+//                  Log.v("CameraActivity", "Stopping Recording");
+//                  stopScreenSharing();
+//                  finish();
+//                }
+//              }).show();
+//    } else {
+//      finish();
+//    }
   }
 
 //  public void EndTrip(View view) {

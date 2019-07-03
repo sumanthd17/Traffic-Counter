@@ -46,5 +46,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-core:16.0.9'
 
     implementation 'com.google.firebase:firebase-auth:16.0.5'
+    implementation 'net.zetetic:android-database-sqlcipher:3.5.4@aar'
+
 }
 apply plugin: 'com.google.gms.google-services'

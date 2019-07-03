@@ -113,27 +113,6 @@ public abstract class CameraActivity extends AppCompatActivity
   private SwitchCompat apiSwitchCompat;
   private TextView threadsTextView;
 
-  //screen recording essentials
-  private static final int REQUEST_CODE = 1000;
-  private int mScreenDensity;
-  private MediaProjectionManager mProjectionManager;
-  private static final int DISPLAY_WIDTH = 720;
-  private static final int DISPLAY_HEIGHT = 1280;
-  private MediaProjection mMediaProjection;
-  private VirtualDisplay mVirtualDisplay;
-  private MediaRecorder mMediaRecorder;
-  private MediaProjectionCallback mMediaProjectionCallback;
-  private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
-  private static final int REQUEST_PERMISSION_KEY = 1;
-  boolean isRecording = false;
-
-  static {
-    ORIENTATIONS.append(Surface.ROTATION_0, 90);
-    ORIENTATIONS.append(Surface.ROTATION_90, 0);
-    ORIENTATIONS.append(Surface.ROTATION_180, 270);
-    ORIENTATIONS.append(Surface.ROTATION_270, 180);
-  }
-
   @Override
   protected void onCreate(final Bundle savedInstanceState) {
     LOGGER.d("onCreate " + this);
@@ -151,17 +130,7 @@ public abstract class CameraActivity extends AppCompatActivity
       requestPermission();
     }
 
-    //screen recording
-    DisplayMetrics metrics = new DisplayMetrics();
-    getWindowManager().getDefaultDisplay().getMetrics(metrics);
-    mScreenDensity = metrics.densityDpi;
-
-    mMediaRecorder = new MediaRecorder();
-
-    mProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
-
-    initRecorder();
-    shareScreen();
+    startVideoRecording();
 
     threadsTextView = findViewById(R.id.threads);
     plusImageView = findViewById(R.id.plus);
@@ -236,126 +205,7 @@ public abstract class CameraActivity extends AppCompatActivity
     return rgbBytes;
   }
 
-  public void stopRec(){
-    mMediaRecorder.stop();
-    mMediaRecorder.reset();
-    stopScreenSharing();
-  }
 
-  private void shareScreen() {
-    if (mMediaProjection == null) {
-      startActivityForResult(mProjectionManager.createScreenCaptureIntent(), REQUEST_CODE);
-      return;
-    }
-    mVirtualDisplay = createVirtualDisplay();
-    mMediaRecorder.start();
-    isRecording = true;
-  }
-
-  private VirtualDisplay createVirtualDisplay() {
-    return mMediaProjection.createVirtualDisplay("MainActivity", DISPLAY_WIDTH, DISPLAY_HEIGHT, mScreenDensity,
-            DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mMediaRecorder.getSurface(), null, null);
-  }
-
-  String fileName;
-
-  private void initRecorder() {
-    try {
-      mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
-      mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4); //THREE_GPP
-
-      fileName = new StringBuilder("tc_video_").append(new SimpleDateFormat("dd-MM-yyyy-hh_mm_ss")
-              .format(new Date())).append(".mp4").toString();
-
-      mMediaRecorder.setOutputFile(Environment.getExternalStorageDirectory()
-              + new StringBuilder("/RoadBounce/").append(fileName).toString());
-      mMediaRecorder.setVideoSize(DISPLAY_WIDTH, DISPLAY_HEIGHT);
-      mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-      mMediaRecorder.setVideoEncodingBitRate(512 * 1000);
-      mMediaRecorder.setVideoFrameRate(16); // 30
-      mMediaRecorder.setVideoEncodingBitRate(3000000);
-      int rotation = getWindowManager().getDefaultDisplay().getRotation();
-      int orientation = ORIENTATIONS.get(rotation + 90);
-      mMediaRecorder.setOrientationHint(orientation);
-      mMediaRecorder.prepare();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-  }
-
-  private void stopScreenSharing() {
-    if (mVirtualDisplay == null) {
-      return;
-    }
-    mVirtualDisplay.release();
-    destroyMediaProjection();
-    isRecording = false;
-  }
-
-  private void destroyMediaProjection() {
-    if (mMediaProjection != null) {
-      if (mMediaRecorder != null) {
-        mMediaRecorder.stop();
-        mMediaRecorder.reset();
-
-        if (mVirtualDisplay == null) {
-          return;
-        }
-        mVirtualDisplay.release();
-        isRecording = false;
-      }
-
-      mMediaProjection.unregisterCallback(mMediaProjectionCallback);
-      mMediaProjection.stop();
-      mMediaProjection = null;
-    }
-    File path = new File(Environment.getExternalStorageDirectory() + "/RoadBounce/");
-    if (!path.isDirectory()) {
-      path.mkdirs();
-    }
-    File file = new File(path, fileName);
-
-    Intent mediaScannerIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-    Uri fileContentUri = Uri.fromFile(file); // With 'file' being the File object
-    mediaScannerIntent.setData(fileContentUri);
-    this.sendBroadcast(mediaScannerIntent); // With 'this' being the context, e.g. the activity
-
-    Log.i("CameraActivity", "MediaProjection Stopped");
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.O)
-  @Override
-  public void onActivityResult(int requestCode, int resultCode, Intent data) {
-    if (requestCode != REQUEST_CODE) {
-      Log.e("CameraActivity", "Unknown request code: " + requestCode);
-      return;
-    }
-    if (resultCode != RESULT_OK) {
-      Toast.makeText(this, "Screen Cast Permission Denied", Toast.LENGTH_SHORT).show();
-      isRecording = false;
-      return;
-    }
-    mMediaProjectionCallback = new MediaProjectionCallback();
-    mMediaProjection = mProjectionManager.getMediaProjection(resultCode, data);
-    mMediaProjection.registerCallback(mMediaProjectionCallback, null);
-    mVirtualDisplay = createVirtualDisplay();
-    mMediaRecorder.start();
-    isRecording = true;
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.O)
-  private class MediaProjectionCallback extends MediaProjection.Callback {
-    @Override
-    public void onStop() {
-      if (isRecording) {
-        isRecording = false;
-        mMediaRecorder.stop();
-        mMediaRecorder.reset();
-      }
-      mMediaProjection = null;
-      stopScreenSharing();
-    }
-  }
 
   @Override
   public void onBackPressed() {
@@ -386,13 +236,7 @@ public abstract class CameraActivity extends AppCompatActivity
 //    }
   }
 
-//  public void EndTrip(View view) {
-//    Log.d(TAG, "EndTrip: ");
-//    stopRec();
-//    finish();
-//  }
 
-  //end screen recording
 
   protected int getLuminanceStride() {
     return yRowStride;
@@ -553,7 +397,6 @@ public abstract class CameraActivity extends AppCompatActivity
   public synchronized void onDestroy() {
     LOGGER.d("onDestroy " + this);
     super.onDestroy();
-    destroyMediaProjection();
   }
 
   protected synchronized void runInBackground(final Runnable r) {
@@ -775,6 +618,8 @@ public abstract class CameraActivity extends AppCompatActivity
   }
 
   protected abstract void processImage();
+
+  protected abstract void startVideoRecording();
 
   protected abstract void onPreviewSizeChosen(final Size size, final int rotation);
 

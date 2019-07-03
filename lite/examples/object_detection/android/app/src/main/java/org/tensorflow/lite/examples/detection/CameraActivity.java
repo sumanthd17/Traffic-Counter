@@ -56,6 +56,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
+import android.view.MenuItem;
 import android.view.Surface;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -63,6 +64,7 @@ import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -80,6 +82,7 @@ public abstract class CameraActivity extends AppCompatActivity
         implements OnImageAvailableListener,
         Camera.PreviewCallback,
         CompoundButton.OnCheckedChangeListener,
+        PopupMenu.OnMenuItemClickListener,
         View.OnClickListener {
   private static final String TAG = "CameraActivity";
   private static final Logger LOGGER = new Logger();
@@ -783,18 +786,38 @@ public abstract class CameraActivity extends AppCompatActivity
 
   protected abstract void setUseNNAPI(boolean isChecked);
 
-  public void upTraffic(View view) {
-    this.trafficLineCode = 1;
+  public void showPopup(View view){
+    PopupMenu popupMenu = new PopupMenu(this, view);
+    popupMenu.setOnMenuItemClickListener(this);
+    popupMenu.inflate(R.menu.popup_menu);
+    popupMenu.show();
   }
-  public void downTraffic(View view) {
-    this.trafficLineCode = 2;
+
+  @Override
+  public boolean onMenuItemClick(MenuItem item) {
+    switch (item.getItemId()){
+      case R.id.upDirection:
+        Toast.makeText(this, "Counting up traffic",Toast.LENGTH_SHORT).show();
+        this.trafficLineCode = 1;
+        return true;
+      case R.id.downDirection:
+        Toast.makeText(this,"Counting down traffic",Toast.LENGTH_SHORT).show();
+        this.trafficLineCode = 2;
+        return true;
+      case R.id.leftDirection:
+        Toast.makeText(this,"Counting left traffic",Toast.LENGTH_SHORT).show();
+        this.trafficLineCode = 3;
+        return true;
+      case R.id.rightDirection:
+        Toast.makeText(this,"Counting right traffic",Toast.LENGTH_SHORT).show();
+        this.trafficLineCode = 4;
+        return true;
+        default:
+          this.trafficLineCode = 0;
+          return false;
+    }
   }
-  public void leftTraffic(View view) {
-    this.trafficLineCode = 3;
-  }
-  public void rightTraffic(View view) {
-    this.trafficLineCode = 4;
-  }
+
   public int getTrafficLineCode() {
     return this.trafficLineCode;
   }

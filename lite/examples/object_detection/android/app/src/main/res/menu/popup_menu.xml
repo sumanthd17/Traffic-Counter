@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/upDirection"
+        android:title="Up" />
+    <item android:id="@+id/downDirection"
+        android:title="Down" />
+    <item android:id="@+id/leftDirection"
+        android:title="Left" />
+    <item android:id="@+id/rightDirection"
+        android:title="Right" />
+</menu>

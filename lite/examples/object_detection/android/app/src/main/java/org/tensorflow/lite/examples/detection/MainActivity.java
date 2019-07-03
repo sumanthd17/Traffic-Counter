@@ -1,11 +1,15 @@
 package org.tensorflow.lite.examples.detection;
 
 import android.Manifest;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AlertDialog;
+import android.text.InputType;
 import android.view.View;
 import android.support.v4.view.GravityCompat;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -16,6 +20,8 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,12 +36,16 @@ public class MainActivity extends AppCompatActivity
     //view objects
     private TextView textViewUserEmail;
     private TextView email;
+    private Context context;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        context = this;
 
 //        FloatingActionButton fab = findViewById(R.id.fab);
 //        fab.setOnClickListener(new View.OnClickListener() {
@@ -82,8 +92,46 @@ public class MainActivity extends AppCompatActivity
         if (!Function.hasPermissions(this, PERMISSIONS)) {
             ActivityCompat.requestPermissions(this, PERMISSIONS, REQUEST_PERMISSION_KEY);
         } else {
-            Intent intent = new Intent(MainActivity.this, DetectorActivity.class);
-            startActivity(intent);
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+            alertDialogBuilder.setTitle("Enter Location Name");
+            alertDialogBuilder.setCancelable(false);
+            final EditText name = new EditText(context);
+            name.setInputType(InputType.TYPE_CLASS_TEXT);
+//            recyclerView.setLayoutManager(new GridLayoutManager(context, 1));
+
+//            SharedTripListAdapter mAdapter = new SharedTripListAdapter();
+//            mAdapter.notifyDataSetChanged();
+//            recyclerView.setAdapter(mAdapter);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            params.setMargins(10, 10, 10, 10);
+            name.setLayoutParams(params);
+
+            alertDialogBuilder.setView(name);
+
+
+            alertDialogBuilder.setPositiveButton("Start", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                    Intent intent = new Intent(MainActivity.this, DetectorActivity.class);
+                    intent.putExtra("name", name.getText().toString());
+                    startActivity(intent);
+                }
+            });
+
+            alertDialogBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+
+            AlertDialog alertDialog = alertDialogBuilder.create();
+            alertDialog.show();
+
         }
     }
 

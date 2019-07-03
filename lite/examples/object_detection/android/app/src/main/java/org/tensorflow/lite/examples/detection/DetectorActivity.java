@@ -18,6 +18,7 @@ package org.tensorflow.lite.examples.detection;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
@@ -105,6 +106,9 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
     private DBHelper dbHelper;
     String tripName = "Traffic-data1111";
+    SharedPreferences sharedPreferences;
+    public static final String MyPREFERENCES = "MyPrefs";
+    public static final String UsernameKey = "UsernameKey";
 
     //screen recording essentials
     private static final int REQUEST_CODE = 1000;
@@ -198,12 +202,13 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     public void EndTrip(View view) {
         Log.d(TAG, "EndTrip: ");
 
-        //tripname videoname logname username - > insert
-        try {
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy-hh-mm-ss");
-            String format = simpleDateFormat.format(new Date());
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy-hh-mm-ss");
+        String format = simpleDateFormat.format(new Date());
 
-            String filename = "Log-" + format + ".txt";
+        String filename = "Log-" + format + ".txt";
+
+        try {
+
             File filePath = new File(Environment.getExternalStorageDirectory() + "/RoadBounce/LOGS");
 
             if (!filePath.isDirectory()) {
@@ -230,6 +235,17 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             e.printStackTrace();
         }
         stopRec();
+
+        //get username from session
+        sharedPreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+        String username = sharedPreferences.getString(UsernameKey,"");
+        SimpleDateFormat date = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
+        String strDate = date.format(new Date());
+
+        String id = dbHelper.insertTrip(tripName, videoFileName, filename, username, strDate);
+
+        Log.d(TAG, "Trip Details: " + tripName + " " + videoFileName + " " + filename + " " + username + " " + strDate);
+        Log.d(TAG, "Trip added to sqlite id: " + id);
 
         finish();
     }

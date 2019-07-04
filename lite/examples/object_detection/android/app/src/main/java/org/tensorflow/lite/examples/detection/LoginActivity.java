@@ -1,6 +1,8 @@
 package org.tensorflow.lite.examples.detection;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -22,6 +24,9 @@ public class LoginActivity extends AppCompatActivity {
     TextView signup;
     FirebaseAuth firebaseAuth;
     private FirebaseAuth.AuthStateListener authStateListener;
+    SharedPreferences sharedPreferences;
+    public static final String MyPREFERENCES = "MyPrefs" ;
+    public static final String UsernameKey = "UsernameKey";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +37,8 @@ public class LoginActivity extends AppCompatActivity {
         logInpasswd = findViewById(R.id.loginpaswd);
         btnLogIn = findViewById(R.id.btnLogIn);
         signup = findViewById(R.id.TVSignIn);
+        sharedPreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+
         authStateListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
@@ -70,8 +77,11 @@ public class LoginActivity extends AppCompatActivity {
                         @Override
                         public void onComplete(@NonNull Task task) {
                             if (!task.isSuccessful()) {
-                                Toast.makeText(LoginActivity.this, "Not sucessfull", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(LoginActivity.this, "Not successful", Toast.LENGTH_SHORT).show();
                             } else {
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putString(UsernameKey, userEmail);
+                                editor.commit();
                                 startActivity(new Intent(LoginActivity.this, MainActivity.class));
                             }
                         }

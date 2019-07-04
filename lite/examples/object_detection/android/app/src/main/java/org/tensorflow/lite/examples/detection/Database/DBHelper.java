@@ -27,9 +27,10 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String TRIP_COLUMN_VIDEO_NAME = "video_name";
     public static final String TRIP_COLUMN_LOG_FILE_NAME = "log_file_name";
     public static final String TRIP_COLUMN_USER_NAME = "user_name";
+    public static final String TRIP_COLUMN_DATE = "date";
 
     String PASSWORD = "rbtraffic";
-    private String tripCreateTableString = "create table trip (id int, trip_name text, video_name text, log_file_name text, user_name text)";
+    private String tripCreateTableString = "create table trip (id int, trip_name text, video_name text, log_file_name text, user_name text, date text)";
 
 
     public DBHelper(Context context) {
@@ -118,7 +119,7 @@ public class DBHelper extends SQLiteOpenHelper {
         }
     }
 
-    public String insertTrip(String trip_name, String video_name, String log, String user_name) {
+    public String insertTrip(String trip_name, String video_name, String log, String user_name, String date) {
         SQLiteDatabase db = getWritableDatabase(PASSWORD);
         ContentValues contentValues = new ContentValues();
 
@@ -138,6 +139,7 @@ public class DBHelper extends SQLiteOpenHelper {
         contentValues.put(TRIP_COLUMN_VIDEO_NAME, video_name);
         contentValues.put(TRIP_COLUMN_LOG_FILE_NAME, log);
         contentValues.put(TRIP_COLUMN_USER_NAME, user_name);
+        contentValues.put(TRIP_COLUMN_DATE, date);
 
 
         db.insert("trip", null, contentValues);
@@ -148,5 +150,13 @@ public class DBHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase(PASSWORD);
         int row = db.delete("trip", "video_name = ? ", new String[]{v_name});
         return row;
+    }
+
+    public Cursor getTripData() {
+        SQLiteDatabase db = getReadableDatabase(PASSWORD);
+        Cursor res = db.rawQuery("select * from trip", null);
+        Log.d(TAG, "getTripData: Trip Count  : " + res.getCount());
+        db.close();
+        return res;
     }
 }

@@ -135,6 +135,10 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    public void savedTrips(View view){
+        startActivity(new Intent(this, PreviousRidesActivity.class));
+    }
+
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -174,9 +178,9 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_home) {
-            // Handle the camera action
+            startActivity(new Intent(this, MainActivity.class));
         } else if (id == R.id.history) {
-
+            startActivity(new Intent(this, PreviousRidesActivity.class));
         } else if (id == R.id.guide) {
 
         } else if (id == R.id.logout) {

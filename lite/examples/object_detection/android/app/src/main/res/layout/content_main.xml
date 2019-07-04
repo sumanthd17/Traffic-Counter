@@ -33,7 +33,6 @@
                 android:layout_width="103dp"
                 android:layout_height="wrap_content"
                 android:background="@drawable/ripple_effect"
-
                 android:onClick="StartDetector"
                 android:clickable="true"
                 android:gravity="center"
@@ -101,11 +100,10 @@
                 android:layout_width="103dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-
                 android:background="@drawable/ripple_effect"
                 android:clickable="true"
                 android:gravity="center"
-
+                android:onClick="savedTrips"
                 android:padding="7dp">
 
                 <RelativeLayout

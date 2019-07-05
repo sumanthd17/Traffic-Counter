@@ -30,12 +30,16 @@ import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.media.ImageReader.OnImageAvailableListener;
 import android.media.MediaRecorder;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Environment;
 import android.os.SystemClock;
 import android.support.annotation.RequiresApi;
@@ -197,10 +201,44 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         tracker.setFrameConfiguration(previewWidth, previewHeight, sensorOrientation);
     }
 
+//    private final LocationListener mLocationListener = new LocationListener() {
+//        @Override
+//        public void onLocationChanged(final Location location) {
+//            //your code here
+//        }
+//
+//        @Override
+//        public void onStatusChanged(String provider, int status, Bundle extras) {
+//
+//        }
+//
+//        @Override
+//        public void onProviderEnabled(String provider) {
+//
+//        }
+//
+//        @Override
+//        public void onProviderDisabled(String provider) {
+//
+//        }
+//    };
+//
+//    @Override
+//    protected void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//
+//        mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+//
+//        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_REFRESH_TIME,
+//                LOCATION_REFRESH_DISTANCE, mLocationListener);
+//    }
+
     List<Classifier.Recognition> results;
 
     public void EndTrip(View view) {
         Log.d(TAG, "EndTrip: ");
+//        Log.d(TAG, "Accessed Location.");
+
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy-hh-mm-ss");
         String format = simpleDateFormat.format(new Date());
@@ -216,6 +254,8 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             }
             File txtFile = new File(filePath, filename);
             FileWriter writer = new FileWriter(txtFile);
+            writer.append("Trip Summary for" + tripName + "\n");
+
             for (final Classifier.Recognition result : results) {
                 final RectF location = result.getLocation();
                 float minimumConfidence = MINIMUM_CONFIDENCE_TF_OD_API;
@@ -225,9 +265,10 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                         break;
                 }
                 if (location != null && result.getConfidence() >= minimumConfidence && (result.getTitle().equals("car") || result.getTitle().equals("motorcycle") || result.getTitle().equals("bus") || result.getTitle().equals("truck"))) {
-                    writer.append(String.valueOf(result));
+                    writer.append(String.valueOf(result.getTitle()) + " @ " + String.valueOf(simpleDateFormat.format(new Date())));
                 }
             }
+            writer.append("Trip Terminated at" + format);
             writer.flush();
             writer.close();
 

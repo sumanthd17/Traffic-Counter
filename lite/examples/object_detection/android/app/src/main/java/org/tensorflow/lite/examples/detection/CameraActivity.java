@@ -130,7 +130,13 @@ public abstract class CameraActivity extends AppCompatActivity
       requestPermission();
     }
 
-    startVideoRecording();
+      runInBackground(
+              new Runnable() {
+                  @Override
+                  public void run() {
+                      startVideoRecording();
+                  }
+              });
 
     threadsTextView = findViewById(R.id.threads);
     plusImageView = findViewById(R.id.plus);

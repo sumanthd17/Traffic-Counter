@@ -38,6 +38,7 @@ import android.media.MediaScannerConnection;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -130,13 +131,18 @@ public abstract class CameraActivity extends AppCompatActivity
       requestPermission();
     }
 
-      runInBackground(
-              new Runnable() {
-                  @Override
-                  public void run() {
-                      startVideoRecording();
-                  }
-              });
+    startVideoRecording();
+
+//      runInBackground(
+//              new Runnable() {
+//                  @Override
+//                  public void run() {
+//                      startVideoRecording();
+//                    Log.d(TAG, "run: video startted....");
+//                  }
+//              });
+
+//    new StartRecordingAsync().execute();
 
     threadsTextView = findViewById(R.id.threads);
     plusImageView = findViewById(R.id.plus);
@@ -210,8 +216,6 @@ public abstract class CameraActivity extends AppCompatActivity
     imageConverter.run();
     return rgbBytes;
   }
-
-
 
   @Override
   public void onBackPressed() {
@@ -663,9 +667,9 @@ public abstract class CameraActivity extends AppCompatActivity
         Toast.makeText(this,"Counting right traffic",Toast.LENGTH_SHORT).show();
         this.trafficLineCode = 4;
         return true;
-        default:
-          this.trafficLineCode = 0;
-          return false;
+      default:
+        this.trafficLineCode = 0;
+        return false;
     }
   }
 

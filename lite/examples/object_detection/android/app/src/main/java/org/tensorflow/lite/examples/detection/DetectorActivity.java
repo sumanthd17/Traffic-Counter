@@ -30,9 +30,6 @@ import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.media.ImageReader.OnImageAvailableListener;
 import android.media.MediaRecorder;
 import android.media.projection.MediaProjection;
@@ -40,7 +37,6 @@ import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.Environment;
 import android.os.SystemClock;
 import android.support.annotation.RequiresApi;
@@ -53,7 +49,31 @@ import android.view.Surface;
 import android.view.View;
 import android.widget.Toast;
 
+import com.itextpdf.text.BaseColor;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.ExceptionConverter;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.Image;
+import com.itextpdf.text.PageSize;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.Phrase;
+import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.html.WebColors;
+import com.itextpdf.text.pdf.BaseFont;
+import com.itextpdf.text.pdf.ColumnText;
+import com.itextpdf.text.pdf.PdfContentByte;
+import com.itextpdf.text.pdf.PdfName;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfPageEventHelper;
+import com.itextpdf.text.pdf.PdfTemplate;
+import com.itextpdf.text.pdf.PdfWriter;
+
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -129,6 +149,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     private static final int REQUEST_PERMISSION_KEY = 1;
     boolean isRecording = false;
     String videoFileName;
+    String pdfFileName;
 
 
     static {
@@ -265,13 +286,18 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                         minimumConfidence = MINIMUM_CONFIDENCE_TF_OD_API;
                         break;
                 }
-                if (location != null && result.getConfidence() >= minimumConfidence && (result.getTitle().equals("car") || result.getTitle().equals("motorcycle") || result.getTitle().equals("bus") || result.getTitle().equals("truck"))) {
+                if (location != null
+                        && result.getConfidence() >= minimumConfidence
+                        && (result.getTitle().equals("car") || result.getTitle().equals("motorcycle")
+                        || result.getTitle().equals("bus") || result.getTitle().equals("truck"))) {
                     writer.append(String.valueOf(result.getTitle()) + " @ " + String.valueOf(simpleDateFormat.format(new Date())));
                 }
             }
             writer.append("Trip Terminated at" + format);
             writer.flush();
             writer.close();
+
+            generatePdf();
 
         }catch (Exception e){
             e.printStackTrace();
@@ -291,6 +317,8 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
         finish();
     }
+
+
 
 
     @Override
@@ -498,8 +526,11 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
             mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4); //THREE_GPP
 
-            videoFileName = new StringBuilder("tc_video_").append(new SimpleDateFormat("dd-MM-yyyy-hh_mm_ss")
-                    .format(new Date())).append(".mp4").toString();
+            String time = new SimpleDateFormat("dd-MM-yyyy-hh_mm_ss")
+                    .format(new Date());
+
+            videoFileName = new StringBuilder("tc_video_").append(time).append(".mp4").toString();
+            pdfFileName = new StringBuilder("tc_video_").append(time).append(".pdf").toString();
 
             mMediaRecorder.setOutputFile(Environment.getExternalStorageDirectory()
                     + new StringBuilder("/RoadBounce/").append(videoFileName).toString());
@@ -595,4 +626,293 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         }
     }
     //end screen recording
+
+    private Font headerFont;
+    private Font bf9;
+    private Font bf10;
+    private Font bfBold12;
+    private Font bf12;
+    private boolean isBgColor = false;
+    private String redColor = "#FFC7CE";//"9C0006";
+    private String yellowColor ="#FFEB9C"; //"9C6500";
+    private String greenColor = "#C6EFCE";//"006100";
+    private String whiteColor = "#ffffff";
+    private Font redFont;
+    private Font greenFont;
+    private Font yellowFont;
+    private static final String LEFT_FOOTER_PART1 = "Generated by RoadBounce - www.roadbounce.com" ;;
+
+    private void generatePdf() {
+        String fontpath = (getApplicationContext().getAssets() + "fonts/");
+        BaseFont customfont = null;
+        try {
+            customfont = BaseFont.createFont(fontpath + "Calibri.ttf", BaseFont.CP1252, BaseFont.EMBEDDED);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // special fonts sizes
+        bfBold12 = new Font(customfont, 11, Font.BOLD, new BaseColor(0, 0, 0));
+
+        // special fonts sizes
+        bf9 = new Font(customfont,9);
+        bf10 = new Font(customfont,9);
+        headerFont = new Font(customfont, 14, Font.BOLD, new BaseColor(0,
+                112, 192));
+
+
+
+        bf12 = new Font(customfont, 11);
+
+
+
+       /* bfBold12 = new Font(customfont, 12, Font.BOLD, new BaseColor(0, 0, 0));
+        bf12 = new Font(customfont, 12);*/
+
+       /* redFont = new Font(customfont, 12, Font.NORMAL, new BaseColor(255, 199, 206));
+        greenFont = new Font(customfont, 12, Font.NORMAL, new BaseColor(198, 239, 206));
+        yellowFont = new Font(customfont, 12, Font.NORMAL, new BaseColor(255, 235, 156));*/
+        redFont = new Font(customfont, 12, Font.NORMAL, new BaseColor(156, 0, 6));
+        greenFont = new Font(customfont, 12, Font.NORMAL, new BaseColor(0, 97, 0));
+        yellowFont = new Font(customfont, 12, Font.NORMAL, new BaseColor(156, 101, 0));
+
+        Document doc = new Document();
+        PdfWriter docWriter = null;
+
+
+        try {
+            File PWD_RQMDirectory = new File(Environment.getExternalStorageDirectory() + "/RoadBounce/PDF");
+            // have the object build the directory structure, if needed.
+            if (!PWD_RQMDirectory.isDirectory()) {
+                PWD_RQMDirectory.mkdirs();
+            }
+            File path = new File(PWD_RQMDirectory, pdfFileName);
+            docWriter = PdfWriter.getInstance(doc, new FileOutputStream(path));
+
+            //document header attributes
+            doc.addAuthor("Definitics Solutions");
+            doc.addCreationDate();
+            doc.addProducer();
+            doc.addCreator("Definitics.com");
+            doc.addTitle("Report with Column Headings");
+            doc.setPageSize(PageSize.A4);
+            Header header = new Header();
+            header.footerName=LEFT_FOOTER_PART1;
+            String buLevelTree= "";
+            header.headerDistrict=buLevelTree;
+            header.isIndexPage=false;
+
+            docWriter.setPageEvent(header);
+            //open document
+            doc.open();
+
+            //create a paragraph
+            Paragraph paragraph = new Paragraph("Location: " + tripName + "\n");
+
+            float[] columnWidths = {0.5f, 1f, 1.5f, 1f, 1.5f};
+            //create PDF table with the given widths
+            PdfPTable table = new PdfPTable(columnWidths);
+
+            // set table width a percentage of the page width
+            table.setWidthPercentage(100f);
+
+            //insert column headings
+            insertCell(table, "Traffic Counting Report", Element.ALIGN_CENTER, 7, headerFont, whiteColor);
+            insertCell(table, "#", Element.ALIGN_CENTER, 1, bfBold12, whiteColor);
+            insertCell(table, "Vehicle", Element.ALIGN_CENTER, 1, bfBold12, whiteColor);
+            insertCell(table, "Location", Element.ALIGN_CENTER, 1, bfBold12, whiteColor);
+            insertCell(table, "Accuracy", Element.ALIGN_CENTER, 1, bfBold12, whiteColor);
+            insertCell(table, "Time", Element.ALIGN_CENTER, 1, bfBold12,whiteColor);
+
+            table.setHeaderRows(2);
+
+            int srN0 = 1;
+            if (!results.isEmpty()) {
+                for (final Classifier.Recognition result : results) {
+                    final RectF location = result.getLocation();
+                    float minimumConfidence = MINIMUM_CONFIDENCE_TF_OD_API;
+                    switch (MODE) {
+                        case TF_OD_API:
+                            minimumConfidence = MINIMUM_CONFIDENCE_TF_OD_API;
+                            break;
+                    }
+                    if (location != null
+                            && result.getConfidence() >= minimumConfidence
+                            && (result.getTitle().equals("car") || result.getTitle().equals("motorcycle")
+                            || result.getTitle().equals("bus") || result.getTitle().equals("truck"))) {
+
+                        insertCell(table, (srN0) + "", Element.ALIGN_CENTER, 1, bf12, whiteColor);
+                        srN0++;
+                        insertCell(table, result.getTitle(), Element.ALIGN_CENTER, 1, bf12, whiteColor);//vehicle type
+                        insertCell(table, String.valueOf(result.getLocation()), Element.ALIGN_CENTER, 1, bf12, whiteColor);//location
+                        insertCell(table, String.valueOf(result.getConfidence()), Element.ALIGN_CENTER, 1, bf12, whiteColor);//confidence
+                        insertCell(table, result.getTimeStamp(), Element.ALIGN_CENTER, 1, bf12, whiteColor);//timestamp
+
+                    }
+                }
+            } else {
+                insertCell(table, "No data recorded.", Element.ALIGN_CENTER, 7, bf12, redColor);
+            }
+
+            //add the PDF table to the paragraph
+            paragraph.add(table);
+
+            // add the paragraph to the document
+            doc.add(paragraph);
+
+
+        } catch (DocumentException e) {
+            e.printStackTrace();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } finally {
+            if (doc != null) {
+                //close the document
+                doc.close();
+            }
+            if (docWriter != null) {
+                //close the writer
+                docWriter.close();
+            }
+        }
+    }
+
+    private void insertCell(PdfPTable table, String text, int align, int colspan, Font font, String color) {
+
+        /*Font myfont = fonts;
+
+        if (color.equals(whiteColor)) {
+            myfont.setColor(BaseColor.BLACK);
+        } else if (color.equals(greenColor)) {
+            myfont.setColor(BaseColor.GREEN);
+        } else if (color.equals(redColor)) {
+            myfont.setColor(BaseColor.RED);
+        } else {
+            myfont.setColor(BaseColor.YELLOW);
+        }*/
+        //create a new cell with the specified Text and Font
+        PdfPCell cell = new PdfPCell(new Phrase(text.trim(), font));
+        //set the cell alignment
+        cell.setHorizontalAlignment(align);
+
+        //set the cell column span in case you want to merge two or more cells
+        cell.setColspan(colspan);
+        //in case there is no text and you wan to create an empty row
+        BaseColor myColor = WebColors.getRGBColor(color);
+        cell.setBackgroundColor(myColor);
+        /*if (isBgColor) {
+
+            BaseColor myColor = WebColors.getRGBColor(color);
+            cell.setBackgroundColor(myColor);
+        }*/
+
+        if (text.trim().equalsIgnoreCase("")) {
+            cell.setMinimumHeight(10f);
+        }
+        cell.setPadding(5f);
+        cell.setUseAscender(true);
+        cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        //add the call to the table
+        table.addCell(cell);
+
+    }
+
+    class Header extends PdfPageEventHelper {
+        //Font fonts;
+        PdfTemplate t;
+        Image total;
+
+        PdfContentByte cb;
+
+        String headerDistrict;
+        String footerName;
+        boolean isIndexPage;
+
+
+
+        @Override
+        public void onOpenDocument(PdfWriter writer, Document document) {
+            t = writer.getDirectContent().createTemplate(30, 16);
+            cb = writer.getDirectContent();
+            try {
+                total = Image.getInstance(t);
+                total.setRole(PdfName.ASCENT);
+            } catch (DocumentException de) {
+                throw new ExceptionConverter(de);
+            }
+        }
+
+        @Override
+        public void onStartPage(PdfWriter writer, Document document) {
+            PdfContentByte cb = writer.getDirectContent();
+
+            if(!isIndexPage){
+               /* Phrase header = new Phrase(DOCUMENT_HEADER,
+                        headerFont);
+
+                ColumnText.showTextAligned(
+                        cb,
+                        Element.ALIGN_CENTER,
+                        header,
+                        (document.right() + document.left()) / 2
+                        , document.top() +15, 0);*/
+
+              /*  Phrase rightHeader = new Phrase(headerDistrict,
+                        bf9);
+
+                ColumnText.showTextAligned(
+                        cb,
+                        Element.ALIGN_RIGHT,
+                        rightHeader,
+                        document.right() + 25
+                        , document.top() + 36, 90);*/
+            }else{
+                Phrase header = new Phrase("Contents",
+                        headerFont);
+
+                ColumnText.showTextAligned(
+                        cb,
+                        Element.ALIGN_LEFT,
+                        header,
+                        document.left()
+                        , document.top() + 10, 0);
+            }
+
+        }
+
+        @Override
+        public void onEndPage(PdfWriter writer, Document document) {
+            PdfPTable table = new PdfPTable(3);
+            try {
+                if(!isIndexPage){
+                    table.setWidths(new int[]{9, 2, 1});
+                    table.setTotalWidth(document.getPageSize().getWidth());
+                    table.getDefaultCell().setFixedHeight(20);
+                    table.getDefaultCell().setBorder(Rectangle.NO_BORDER);
+                    table.addCell(new Phrase(footerName, bf10));
+                    table.getDefaultCell().setHorizontalAlignment(Element.ALIGN_RIGHT);
+                    table.addCell(new Phrase(String.format("Page %d of", writer.getPageNumber()), bf10));
+                    PdfPCell cell = new PdfPCell(total);
+                    cell.setBorder(Rectangle.NO_BORDER);
+                    table.addCell(cell);
+                    PdfContentByte canvas = writer.getDirectContent();
+                    canvas.beginMarkedContentSequence(PdfName.ARTIFACT);
+                    table.writeSelectedRows(0, -1, 25, 25, canvas);
+                    canvas.endMarkedContentSequence();
+                }
+            } catch (DocumentException de) {
+                throw new ExceptionConverter(de);
+            }
+        }
+
+        @Override
+        public void onCloseDocument(PdfWriter writer, Document document) {
+            if(!isIndexPage){
+                ColumnText.showTextAligned(t, Element.ALIGN_LEFT,
+                        new Phrase(String.valueOf(writer.getPageNumber()), bf10),
+                        2, 5, 0);
+            }
+        }
+    }
+
 }

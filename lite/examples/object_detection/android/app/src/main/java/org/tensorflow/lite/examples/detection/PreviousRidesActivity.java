@@ -33,6 +33,7 @@ import com.bumptech.glide.Glide;
 
 import org.tensorflow.lite.examples.detection.Database.DBHelper;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class PreviousRidesActivity extends AppCompatActivity {
@@ -169,14 +170,14 @@ public class PreviousRidesActivity extends AppCompatActivity {
 
         public class MyViewHolder extends RecyclerView.ViewHolder {
             public TextView tvTitle;//, tvDate;
-            ImageView ivPlayVideo;//, ivDeleteVideo;
+            ImageView ivPlayVideo, ivDeleteVideo;
 
             public MyViewHolder(View view) {
                 super(view);
                 tvTitle =  view.findViewById(R.id.tvTitle);
                 //tvDate =  view.findViewById(R.id.tvDate);
                 ivPlayVideo =  view.findViewById(R.id.ivPlayVideo);
-                //ivDeleteVideo =  view.findViewById(R.id.ivDeleteVideo);
+                ivDeleteVideo =  view.findViewById(R.id.ivDeleteVideo);
             }
         }
 
@@ -190,18 +191,16 @@ public class PreviousRidesActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(MyViewHolder holder, int position) {
-            final int pos = position;
-
             Glide.with(context)
                     .load(R.drawable.play_video)
                     .into(holder.ivPlayVideo);
 
-            /*Glide.with(context)
+            Glide.with(context)
                     .load(R.drawable.delete)
-                    .into(holder.ivDeleteVideo);*/
+                    .into(holder.ivDeleteVideo);
 
             holder.tvTitle.setText(videoNameList.get(position));
-            //holder.tvDate.setText(data.get(position).getDate());
+//holder.tvDate.setText(data.get(position).getDate());
 
             holder.ivPlayVideo.setOnClickListener(v ->{
                 videoView.setVideoURI(Uri.parse(videoPathList.get(position)));
@@ -210,7 +209,7 @@ public class PreviousRidesActivity extends AppCompatActivity {
                 videoView.start();
             });
 
-            /*holder.ivDeleteVideo.setOnClickListener(v -> {
+            holder.ivDeleteVideo.setOnClickListener(v -> {
                 AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
                 alertDialogBuilder.setTitle("Alert");
                 alertDialogBuilder.setMessage("Are you sure?");
@@ -220,10 +219,12 @@ public class PreviousRidesActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
-                        int row = dbHelper.deleteTripByName(data.get(pos).getVideoName());
-
-                        new getAllData().execute();
-                        Log.d(TAG, "on trip delete: " + row);
+                        //int row = dbHelper.deleteTripByName(data.get(pos).getVideoName());
+                        File testFile = new File(videoPathList.get(position));
+                        testFile.delete();
+                        new getAllData().doInBackground();
+                        new getAllData().onPostExecute();
+                        //Log.d(TAG, "on trip delete: " + row);
                         Toast.makeText(context, "Deleted Successfully!", Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -238,7 +239,7 @@ public class PreviousRidesActivity extends AppCompatActivity {
                 AlertDialog alertDialog = alertDialogBuilder.create();
                 alertDialog.show();
 
-            });*/
+            });
         }
 
         @Override

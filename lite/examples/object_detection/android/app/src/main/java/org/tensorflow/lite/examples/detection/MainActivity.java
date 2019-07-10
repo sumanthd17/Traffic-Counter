@@ -136,7 +136,17 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void savedTrips(View view){
-        startActivity(new Intent(this, PreviousRidesActivity.class));
+        String[] PERMISSIONS = {
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.CAMERA
+        };
+        if (!Function.hasPermissions(this, PERMISSIONS)) {
+            ActivityCompat.requestPermissions(this, PERMISSIONS, REQUEST_PERMISSION_KEY);
+        }
+        else{
+            startActivity(new Intent(this, PreviousRidesActivity.class));
+        }
     }
 
     @Override

@@ -1,25 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_height="match_parent"
-    android:background="#3C808080"
-    android:orientation="vertical">
+    android:layout_width="match_parent">
 
-    <android.support.v7.widget.RecyclerView
+    <VideoView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/rvSavedRides"
-        android:layout_margin="2dp"
-        android:visibility="gone"/>
+        android:layout_height="350dp"
+        android:layout_centerHorizontal = "true"
+        android:layout_alignParentTop = "true"
+        android:id="@+id/videoDisplay"/>
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/tvEmpty_view"
-        android:text="No data found!!"
-        android:gravity="center"
-        android:textColor="#000"
-        android:textStyle="normal"
-        android:textSize="18sp"/>
+        android:background="#3C808080"
+        android:orientation="vertical"
+        android:layout_below="@+id/videoDisplay">
 
-</LinearLayout>
+        <android.support.v7.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/rvSavedRides"
+            android:layout_margin="2dp"
+            android:visibility="gone"
+            android:layout_centerHorizontal = "true"
+            android:layout_below = "@+id/videoDisplay"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/tvEmpty_view"
+            android:text="No data found!!"
+            android:gravity="center"
+            android:textColor="#000"
+            android:textStyle="normal"
+            android:textSize="18sp"/>
+
+    </LinearLayout>
+
+</RelativeLayout>

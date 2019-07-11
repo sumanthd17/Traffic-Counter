@@ -1,6 +1,7 @@
 package org.tensorflow.lite.examples.detection;
 
 import android.Manifest;
+import android.util.Log;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -10,6 +11,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -169,13 +171,13 @@ public class PreviousRidesActivity extends AppCompatActivity {
     public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
 
         public class MyViewHolder extends RecyclerView.ViewHolder {
-            public TextView tvTitle;//, tvDate;
-            ImageView ivPlayVideo, ivDeleteVideo;
+            public TextView tvTitle;
+            ImageView ivPlayVideo, tvDate, ivDeleteVideo;
 
             public MyViewHolder(View view) {
                 super(view);
                 tvTitle =  view.findViewById(R.id.tvTitle);
-                //tvDate =  view.findViewById(R.id.tvDate);
+                tvDate =  view.findViewById(R.id.tvDate);
                 ivPlayVideo =  view.findViewById(R.id.ivPlayVideo);
                 ivDeleteVideo =  view.findViewById(R.id.ivDeleteVideo);
             }
@@ -199,14 +201,33 @@ public class PreviousRidesActivity extends AppCompatActivity {
                     .load(R.drawable.delete)
                     .into(holder.ivDeleteVideo);
 
+            Glide.with(context)
+                    .load(R.drawable.pdf)
+                    .into(holder.tvDate);
+
             holder.tvTitle.setText(videoNameList.get(position));
-//holder.tvDate.setText(data.get(position).getDate());
+            //holder.tvDate.setText("View the Report");
 
             holder.ivPlayVideo.setOnClickListener(v ->{
                 videoView.setVideoURI(Uri.parse(videoPathList.get(position)));
                 videoView.setMediaController(new MediaController(PreviousRidesActivity.this));
                 videoView.requestFocus();
                 videoView.start();
+            });
+
+            holder.tvDate.setOnClickListener(v ->{
+                String pdf_name = videoNameList.get(position);
+                pdf_name = pdf_name + ".pdf";
+                String pdf_path = Environment.getExternalStorageDirectory() + "/RoadBounce/PDF/" + pdf_name;
+                Intent I = new Intent(PreviousRidesActivity.this,PDFViewActivity.class);
+                I.putExtra("PDF_File_Path", pdf_name);
+                Log.i(TAG, "onBindViewHolder: pdf_path");
+                startActivity(I);
+
+                /*videoView.setVideoURI(Uri.parse(videoPathList.get(position)));
+                videoView.setMediaController(new MediaController(PreviousRidesActivity.this));
+                videoView.requestFocus();
+                videoView.start();*/
             });
 
             holder.ivDeleteVideo.setOnClickListener(v -> {

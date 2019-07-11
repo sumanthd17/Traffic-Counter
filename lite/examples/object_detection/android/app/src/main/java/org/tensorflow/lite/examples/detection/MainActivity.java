@@ -187,8 +187,10 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_home) {
+            finish();
             startActivity(new Intent(this, MainActivity.class));
         } else if (id == R.id.history) {
+            finish();
             startActivity(new Intent(this, PreviousRidesActivity.class));
         } else if (id == R.id.guide) {
 

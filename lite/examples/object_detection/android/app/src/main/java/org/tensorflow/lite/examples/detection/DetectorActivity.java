@@ -709,7 +709,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             //create a paragraph
             Paragraph paragraph = new Paragraph("Location: " + tripName + "\n");
 
-            float[] columnWidths = {0.5f, 1f, 1.5f, 1f, 1.5f};
+            float[] columnWidths = {0.5f, 1f, 1f, 1.5f};
             //create PDF table with the given widths
             PdfPTable table = new PdfPTable(columnWidths);
 
@@ -720,7 +720,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             insertCell(table, "Traffic Counting Report", Element.ALIGN_CENTER, 7, headerFont, whiteColor);
             insertCell(table, "#", Element.ALIGN_CENTER, 1, bfBold12, whiteColor);
             insertCell(table, "Vehicle", Element.ALIGN_CENTER, 1, bfBold12, whiteColor);
-            insertCell(table, "Location", Element.ALIGN_CENTER, 1, bfBold12, whiteColor);
+//            insertCell(table, "Location", Element.ALIGN_CENTER, 1, bfBold12, whiteColor);
             insertCell(table, "Accuracy", Element.ALIGN_CENTER, 1, bfBold12, whiteColor);
             insertCell(table, "Time", Element.ALIGN_CENTER, 1, bfBold12,whiteColor);
 
@@ -744,8 +744,8 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                         insertCell(table, (srN0) + "", Element.ALIGN_CENTER, 1, bf12, whiteColor);
                         srN0++;
                         insertCell(table, result.getTitle(), Element.ALIGN_CENTER, 1, bf12, whiteColor);//vehicle type
-                        insertCell(table, String.valueOf(result.getLocation()), Element.ALIGN_CENTER, 1, bf12, whiteColor);//location
-                        insertCell(table, String.valueOf(result.getConfidence()), Element.ALIGN_CENTER, 1, bf12, whiteColor);//confidence
+//                        insertCell(table, String.valueOf(result.getLocation()), Element.ALIGN_CENTER, 1, bf12, whiteColor);//location
+                        insertCell(table, String.valueOf(result.getConfidence() * 100), Element.ALIGN_CENTER, 1, bf12, whiteColor);//confidence
                         insertCell(table, result.getTimeStamp(), Element.ALIGN_CENTER, 1, bf12, whiteColor);//timestamp
 
                     }
@@ -772,6 +772,17 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             }
             if (docWriter != null) {
                 //close the writer
+
+                File path = new File(Environment.getExternalStorageDirectory() + "/RoadBounce/PDF");
+                if (!path.isDirectory()) {
+                    path.mkdirs();
+                }
+                File file = new File(path, pdfFileName);
+
+                Intent mediaScannerIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+                Uri fileContentUri = Uri.fromFile(file); // With 'file' being the File object
+                mediaScannerIntent.setData(fileContentUri);
+                this.sendBroadcast(mediaScannerIntent); // With 'this' being the context, e.g. the activity
                 docWriter.close();
             }
         }

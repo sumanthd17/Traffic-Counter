@@ -14,8 +14,8 @@
         >
 
         <ImageView
-            android:layout_width="35dp"
-            android:layout_height="35dp"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
             android:id="@+id/ivPlayVideo"
             android:onClick="playSavedVideo"/>
 
@@ -25,20 +25,28 @@
             android:id="@+id/tvTitle"
             android:layout_toEndOf="@+id/ivPlayVideo"
             android:layout_marginStart="10dp"
-            android:layout_marginEnd="5dp"
+            android:layout_marginEnd="10dp"
             android:maxLines="2"
-            android:textSize="18sp"
+            android:textSize="15sp"
             android:textColor="#000"
             android:textStyle="normal"
-            android:ellipsize="end" />
+            android:ellipsize="end"
+            android:layout_centerVertical="true"/>
+
+        <ImageView
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:id="@+id/tvDate"
+            android:layout_marginLeft="20dp"
+            android:layout_centerVertical="true"
+            android:layout_toEndOf="@+id/tvTitle" />
         <ImageView
             android:layout_width="25dp"
             android:layout_height="25dp"
             android:id="@+id/ivDeleteVideo"
+            android:layout_toEndOf="@id/tvDate"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"/>
-
-
 
     </RelativeLayout>
 

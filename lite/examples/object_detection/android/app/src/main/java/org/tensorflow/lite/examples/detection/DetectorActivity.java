@@ -679,6 +679,10 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         Document doc = new Document();
         PdfWriter docWriter = null;
 
+        String time = new SimpleDateFormat("dd-MM-yyyy-hh_mm_ss")
+                .format(new Date());
+
+        pdfFileName = new StringBuilder("tc_video_").append(time).append(".pdf").toString();
 
         try {
             File PWD_RQMDirectory = new File(Environment.getExternalStorageDirectory() + "/RoadBounce/PDF");

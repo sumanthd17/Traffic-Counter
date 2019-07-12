@@ -1,6 +1,7 @@
 package org.tensorflow.lite.examples.detection;
 
 import android.Manifest;
+import android.util.Log;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -10,6 +11,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -33,6 +35,7 @@ import com.bumptech.glide.Glide;
 
 import org.tensorflow.lite.examples.detection.Database.DBHelper;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class PreviousRidesActivity extends AppCompatActivity {
@@ -168,15 +171,15 @@ public class PreviousRidesActivity extends AppCompatActivity {
     public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
 
         public class MyViewHolder extends RecyclerView.ViewHolder {
-            public TextView tvTitle;//, tvDate;
-            ImageView ivPlayVideo;//, ivDeleteVideo;
+            public TextView tvTitle;
+            ImageView ivPlayVideo, tvDate, ivDeleteVideo;
 
             public MyViewHolder(View view) {
                 super(view);
                 tvTitle =  view.findViewById(R.id.tvTitle);
-                //tvDate =  view.findViewById(R.id.tvDate);
+                tvDate =  view.findViewById(R.id.tvDate);
                 ivPlayVideo =  view.findViewById(R.id.ivPlayVideo);
-                //ivDeleteVideo =  view.findViewById(R.id.ivDeleteVideo);
+                ivDeleteVideo =  view.findViewById(R.id.ivDeleteVideo);
             }
         }
 
@@ -190,18 +193,20 @@ public class PreviousRidesActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(MyViewHolder holder, int position) {
-            final int pos = position;
-
             Glide.with(context)
                     .load(R.drawable.play_video)
                     .into(holder.ivPlayVideo);
 
-            /*Glide.with(context)
+            Glide.with(context)
                     .load(R.drawable.delete)
-                    .into(holder.ivDeleteVideo);*/
+                    .into(holder.ivDeleteVideo);
+
+            Glide.with(context)
+                    .load(R.drawable.pdf)
+                    .into(holder.tvDate);
 
             holder.tvTitle.setText(videoNameList.get(position));
-            //holder.tvDate.setText(data.get(position).getDate());
+            //holder.tvDate.setText("View the Report");
 
             holder.ivPlayVideo.setOnClickListener(v ->{
                 videoView.setVideoURI(Uri.parse(videoPathList.get(position)));
@@ -210,7 +215,22 @@ public class PreviousRidesActivity extends AppCompatActivity {
                 videoView.start();
             });
 
-            /*holder.ivDeleteVideo.setOnClickListener(v -> {
+            holder.tvDate.setOnClickListener(v ->{
+                String pdf_name = videoNameList.get(position);
+                pdf_name = pdf_name + ".pdf";
+                String pdf_path = Environment.getExternalStorageDirectory() + "/RoadBounce/PDF/" + pdf_name;
+                Intent I = new Intent(PreviousRidesActivity.this,PDFViewActivity.class);
+                I.putExtra("PDF_File_Path", pdf_name);
+                Log.i(TAG, "onBindViewHolder: pdf_path");
+                startActivity(I);
+
+                /*videoView.setVideoURI(Uri.parse(videoPathList.get(position)));
+                videoView.setMediaController(new MediaController(PreviousRidesActivity.this));
+                videoView.requestFocus();
+                videoView.start();*/
+            });
+
+            holder.ivDeleteVideo.setOnClickListener(v -> {
                 AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
                 alertDialogBuilder.setTitle("Alert");
                 alertDialogBuilder.setMessage("Are you sure?");
@@ -220,10 +240,12 @@ public class PreviousRidesActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
-                        int row = dbHelper.deleteTripByName(data.get(pos).getVideoName());
-
-                        new getAllData().execute();
-                        Log.d(TAG, "on trip delete: " + row);
+                        //int row = dbHelper.deleteTripByName(data.get(pos).getVideoName());
+                        File testFile = new File(videoPathList.get(position));
+                        testFile.delete();
+                        new getAllData().doInBackground();
+                        new getAllData().onPostExecute();
+                        //Log.d(TAG, "on trip delete: " + row);
                         Toast.makeText(context, "Deleted Successfully!", Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -238,7 +260,7 @@ public class PreviousRidesActivity extends AppCompatActivity {
                 AlertDialog alertDialog = alertDialogBuilder.create();
                 alertDialog.show();
 
-            });*/
+            });
         }
 
         @Override

@@ -138,13 +138,12 @@ public class MainActivity extends AppCompatActivity
     public void savedTrips(View view){
         String[] PERMISSIONS = {
                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.CAMERA
+                Manifest.permission.READ_EXTERNAL_STORAGE
         };
         if (!Function.hasPermissions(this, PERMISSIONS)) {
-            ActivityCompat.requestPermissions(this, PERMISSIONS, REQUEST_PERMISSION_KEY);
+            ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
         }
-        else{
+        else {
             startActivity(new Intent(this, PreviousRidesActivity.class));
         }
     }
@@ -188,8 +187,10 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_home) {
+            finish();
             startActivity(new Intent(this, MainActivity.class));
         } else if (id == R.id.history) {
+            finish();
             startActivity(new Intent(this, PreviousRidesActivity.class));
         } else if (id == R.id.guide) {
 

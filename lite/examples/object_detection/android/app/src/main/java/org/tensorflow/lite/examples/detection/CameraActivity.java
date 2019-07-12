@@ -131,7 +131,7 @@ public abstract class CameraActivity extends AppCompatActivity
       requestPermission();
     }
 
-    startVideoRecording();
+//    startVideoRecording();
 
 //      runInBackground(
 //              new Runnable() {
@@ -142,7 +142,6 @@ public abstract class CameraActivity extends AppCompatActivity
 //                  }
 //              });
 
-//    new StartRecordingAsync().execute();
 
     threadsTextView = findViewById(R.id.threads);
     plusImageView = findViewById(R.id.plus);

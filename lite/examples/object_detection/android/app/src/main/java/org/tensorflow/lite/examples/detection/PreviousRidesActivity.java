@@ -208,12 +208,12 @@ public class PreviousRidesActivity extends AppCompatActivity {
             holder.tvTitle.setText(videoNameList.get(position));
             //holder.tvDate.setText("View the Report");
 
-            holder.ivPlayVideo.setOnClickListener(v ->{
-                videoView.setVideoURI(Uri.parse(videoPathList.get(position)));
-                videoView.setMediaController(new MediaController(PreviousRidesActivity.this));
-                videoView.requestFocus();
-                videoView.start();
-            });
+//            holder.ivPlayVideo.setOnClickListener(v ->{
+//                videoView.setVideoURI(Uri.parse(videoPathList.get(position)));
+//                videoView.setMediaController(new MediaController(PreviousRidesActivity.this));
+//                videoView.requestFocus();
+//                videoView.start();
+//            });
 
             holder.tvDate.setOnClickListener(v ->{
                 String pdf_name = videoNameList.get(position);
